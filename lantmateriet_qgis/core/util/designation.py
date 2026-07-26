@@ -2,7 +2,9 @@ import re
 
 from lantmateriet_qgis.core.util import cql2, municipalities
 
-designation_re = re.compile(r"([^0-9]+) ?(?:([0-9]+|s|ga)(?::([0-9]+)?)?)?")
+designation_re = re.compile(
+    r"([^0-9]+?) ?(?:([0-9]+|s(?=:)|ga(?=:))(?::([0-9]+))?)?"
+)
 
 
 def parse_designation(designation: str) -> list[dict] | None:
@@ -45,8 +47,12 @@ def parse_designation(designation: str) -> list[dict] | None:
                 ),
             ]
         else:
+            block = designation.group(2)
             filter_terms.append(
-                cql2.equals(cql2.property("block"), int(designation.group(2)))
+                cql2.equals(
+                    cql2.property("block"),
+                    block if block in ("s", "ga") else int(block),
+                )
             )
             filter_terms.append(
                 cql2.equals(cql2.property("enhet"), int(designation.group(3)))
