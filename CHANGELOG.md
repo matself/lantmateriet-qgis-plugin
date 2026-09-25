@@ -2,6 +2,13 @@
 
 Detta format är baserat på [Keep a Changelog](https://keepachangelog.com/sv/) och detta projekt använder sig av [Semantic Versioning](https://semver.org/).
 
+## Oreleasad
+
+* Korrigera krasch (`AttributeError: 'NoneType' object has no attribute 'split'`) när
+  inställningar sparas och den valda autentiseringen saknar scopes
+* Korrigera krasch när den valda autentiseringen har tagits bort eller inte är av typen OAuth2
+* Undvik inledande blanksteg i scope-listan när scopes läggs till
+
 ## 1.0.1 - 2025-09-26
 
 * Korrigera fel vid loggning av nätverksfel vid sökning

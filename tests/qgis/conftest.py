@@ -46,12 +46,16 @@ def qgis_auth_manager(qgis_app):
     yield auth_mgr
 
 
+_UNSET = object()
+
+
 def _create_oauth2_config(
     auth_manager: QgsAuthManager,
     token_url: str,
     request_url: str = "",
     grant_flow: int = GrantFlow.AUTH_CODE_PKCE,
     name: str = "",
+    scope=_UNSET,
 ) -> str:
     """Create a test OAuth2 auth config and return its ID.
 
@@ -61,6 +65,9 @@ def _create_oauth2_config(
         request_url: Authorization endpoint URL (only needed for AUTH_CODE* flows)
         grant_flow: One of GrantFlow constants
         name: Config name (auto-generated if not provided)
+        scope: Scope value to store. Pass None to store an explicit JSON null,
+            or the sentinel default to leave the key out entirely - both occur
+            in the wild and neither is a string.
 
     Returns:
         The auth config ID (unique string)
@@ -96,6 +103,11 @@ def _create_oauth2_config(
         "version": 2,
     }
 
+    if scope is _UNSET:
+        del oauth2_data["scope"]
+    else:
+        oauth2_data["scope"] = scope
+
     config = QgsAuthMethodConfig()
     config.setId(config_id)
     config.setName(name)
@@ -122,10 +134,11 @@ def auth_config_builder(qgis_auth_manager):
         request_url: str = "",
         grant_flow: int = GrantFlow.AUTH_CODE_PKCE,
         name: str = "",
+        scope="openid profile email",
     ) -> str:
         """Create and return an OAuth2 config ID."""
         config_id = _create_oauth2_config(
-            auth_mgr, token_url, request_url, grant_flow, name
+            auth_mgr, token_url, request_url, grant_flow, name, scope
         )
         created_ids.append(config_id)
         return config_id
@@ -134,4 +147,4 @@ def auth_config_builder(qgis_auth_manager):
 
     # Clean up created configs after the test
     for config_id in created_ids:
-        auth_mgr.removeAuthConfig(config_id)
+        auth_mgr.removeAuthenticationConfig(config_id)

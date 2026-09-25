@@ -54,7 +54,7 @@
         <enum>QLineEdit::NoEcho</enum>
        </property>
        <property name="placeholderText">
-        <string>Lösenord</string>
+        <string>Consumer Secret</string>
        </property>
        <property name="showLockIcon">
         <bool>false</bool>

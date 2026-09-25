@@ -78,6 +78,8 @@ class TestSettingsValidateNgp:
         config.setId("basic_auth_id")
         config.setName("Basic Auth (not OAuth2)")
         config.setMethod("Basic")
+        # A config map is required, QGIS refuses to store an empty configuration
+        config.setConfigMap({"username": "user", "password": "pass"})
         auth_mgr.storeAuthenticationConfig(config)
         auth_mgr.updateConfigAuthMethods()
 
@@ -94,7 +96,7 @@ class TestSettingsValidateNgp:
                 for e in errors
             )
         finally:
-            auth_mgr.removeAuthConfig("basic_auth_id")
+            auth_mgr.removeAuthenticationConfig("basic_auth_id")
 
     def test_ngp_production_oauth2_wrong_token_url_returns_error(
         self, auth_config_builder, qgis_auth_manager

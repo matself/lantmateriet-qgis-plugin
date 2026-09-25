@@ -1,6 +1,8 @@
 from pathlib import Path
 
 from qgis.core import (
+    QgsApplication,
+    QgsAuthManager,
     QgsMessageLog,
     QgsSettingsTree,
     QgsStringUtils,
@@ -27,6 +29,7 @@ from lantmateriet_qgis.__about__ import (
 from lantmateriet_qgis.config import URLConfig
 from lantmateriet_qgis.core.settings import Settings
 from lantmateriet_qgis.core.util.oauth_config import (
+    get_scopes,
     load_oauth_config,
     store_oauth_config,
 )
@@ -157,6 +160,14 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
             and s.ovrig in ("production", "verification")
             and s.ovrig_authcfg
         ):
+            auth_manager: QgsAuthManager = QgsApplication.authManager()
+            if (
+                s.ovrig_authcfg not in auth_manager.configIds()
+                or auth_manager.configAuthMethodKey(s.ovrig_authcfg) != "OAuth2"
+            ):
+                # Nothing to sync scopes against. validate() reports this to the user.
+                return
+
             config = load_oauth_config(s.ovrig_authcfg)
             required_scopes = []
             if s.fastighetsindelning_direkt_enabled:
@@ -169,7 +180,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
                 required_scopes.append("gemensamhetsanlaggning_direkt_v21_read")
             if s.belagenhetsadress_direkt_enabled:
                 required_scopes.append("belagenhetsadress_direkt_v42_read")
-            existing_scopes = config.get("scope", "").split(" ")
+            existing_scopes = get_scopes(config)
             missing_scopes = set(required_scopes) - set(existing_scopes)
             if missing_scopes:
                 res = QMessageBox.warning(

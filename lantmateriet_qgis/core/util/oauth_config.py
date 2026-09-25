@@ -12,7 +12,14 @@ class GrantFlow:
     CLIENT_CREDENTIALS = 4
 
 
-class OAuth2ConfigData(TypedDict):
+class OAuth2ConfigData(TypedDict, total=False):
+    """The oauth2config payload of a QGIS OAuth2 auth configuration.
+
+    Every key is optional: configurations written by this plugin only contain a
+    handful of keys, and QGIS itself may serialize unset string properties as
+    JSON null. Always read values with ``.get()`` and treat null as unset.
+    """
+
     accessMethod: int
     apiKey: str
     clientId: str
@@ -44,8 +51,25 @@ def load_oauth_config(authcfg: str) -> OAuth2ConfigData:
     auth_manager: QgsAuthManager = QgsApplication.authManager()
     config = QgsAuthMethodConfig()
     auth_manager.loadAuthenticationConfig(authcfg, config, True)
-    data = json.loads(config.config("oauth2config"))
+    raw = config.config("oauth2config")
+    if not raw:
+        # Unknown config id, non-OAuth2 method, or locked auth database
+        return OAuth2ConfigData()
+    try:
+        data = json.loads(raw)
+    except json.JSONDecodeError:
+        return OAuth2ConfigData()
     return OAuth2ConfigData(**data)
+
+
+def get_scopes(config: OAuth2ConfigData) -> list[str]:
+    """Return the scopes of an OAuth2 configuration as a list.
+
+    The scope key may be absent (configurations created by this plugin only set
+    a handful of keys) or present but null (QGIS serializes unset string
+    properties as JSON null), so neither indexing nor a get() default suffices.
+    """
+    return [scope for scope in (config.get("scope") or "").split(" ") if scope]
 
 
 def store_oauth_config(authcfg: str, data: OAuth2ConfigData):
