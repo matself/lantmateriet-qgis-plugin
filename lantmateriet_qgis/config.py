@@ -18,7 +18,7 @@ class URLConfig:
     NGP_STAC_DETALJPLAN = "/distribution/geodatakatalog/sokning/v1/detaljplan/v2"
     NGP_STAC_BYGGNAD = "/distribution/geodatakatalog/sokning/v1/byggnad/v1"
     NGP_STAC_KULTURHISTORISK_LAMNING = (
-        "/geodatakatalog/sokning/v1/kulturhistorisklamning/v1"
+        "/distribution/geodatakatalog/sokning/v1/kulturhistorisklamning/v1"
     )
     NGP_STAC_GRANS_FOR_FJALLNARA_SKOG = (
         "/distribution/geodatakatalog/sokning/v1/gransforfjallnaraskog/v1"
