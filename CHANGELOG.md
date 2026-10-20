@@ -11,6 +11,9 @@ Detta format är baserat på [Keep a Changelog](https://keepachangelog.com/sv/) 
 * Korrigera URL för NGP Kulturhistorisk lämning
 * Pluginets namn är nu `Lantmäteriet Services`
 * Varna vid verifiering av konfigurationen om applikationen saknar prenumeration på valda Direkt-tjänster i API-managern
+* Verifiera konfiguration kontrollerar även varje NGP-tjänst och varnar för tjänster som autentiseringen saknar behörighet till
+* Lägg till tjänster i Datakällor hoppar över NGP-tjänster som autentiseringen saknar behörighet till
+* Korrigera fel vid omladdning av pluginet (`unload`)
 
 ## 1.0.1 - 2025-09-26
 

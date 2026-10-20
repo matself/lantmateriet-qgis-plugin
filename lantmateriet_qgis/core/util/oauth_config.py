@@ -95,8 +95,8 @@ def store_oauth_config(authcfg: str, data: OAuth2ConfigData):
     auth_manager.updateConfigAuthMethods()
 
 
-def fetch_granted_scopes(authcfg: str, scopes: list[str]) -> set[str]:
-    """Request a token for the given scopes and return the scopes actually granted.
+def _request_token(authcfg: str, scopes: list[str]) -> bytes:
+    """Request a token with client credentials and return the raw response body.
 
     Only client credentials configurations are supported. Raises RuntimeError if
     the token endpoint cannot be reached or rejects the credentials.
@@ -128,4 +128,20 @@ def fetch_granted_scopes(authcfg: str, scopes: list[str]) -> set[str]:
     error = blocking.post(request, body)
     if error != QgsBlockingNetworkRequest.ErrorCode.NoError:
         raise RuntimeError(blocking.errorMessage())
-    return parse_granted_scopes(bytes(blocking.reply().content()))
+    return bytes(blocking.reply().content())
+
+
+def fetch_granted_scopes(authcfg: str, scopes: list[str]) -> set[str]:
+    """Request a token for the given scopes and return the scopes actually granted."""
+    return parse_granted_scopes(_request_token(authcfg, scopes))
+
+
+def fetch_access_token(authcfg: str) -> str:
+    """Request a token and return the access token. Raises RuntimeError on failure."""
+    try:
+        token = json.loads(_request_token(authcfg, [])).get("access_token")
+    except ValueError as e:
+        raise RuntimeError("Unreadable token response") from e
+    if not isinstance(token, str) or not token:
+        raise RuntimeError("No access token in the token response")
+    return token

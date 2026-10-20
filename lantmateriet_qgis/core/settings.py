@@ -108,6 +108,21 @@ class Settings:
             "hojdgrid_nedladdning_enabled", self.hojdgrid_nedladdning_enabled
         )
 
+    def ngp_connections(self) -> dict[str, tuple[str, str]]:
+        """STAC connections for the enabled NGP services, as name -> (url, authcfg)."""
+        if not self.ngp_enabled:
+            return {}
+        paths = {
+            "NGP Detaljplan": URLConfig.NGP_STAC_DETALJPLAN,
+            "NGP Byggnad": URLConfig.NGP_STAC_BYGGNAD,
+            "NGP Kulturhistorisk lämning": URLConfig.NGP_STAC_KULTURHISTORISK_LAMNING,
+            "NGP Gräns för fjällnära skog": URLConfig.NGP_STAC_GRANS_FOR_FJALLNARA_SKOG,
+        }
+        return {
+            name: (self.ngp_url + path, self.ngp_authcfg)
+            for name, path in paths.items()
+        }
+
     def required_scopes(self) -> dict[str, str]:
         """Scopes needed by the enabled Direkt services, keyed by service name."""
         scopes = {}

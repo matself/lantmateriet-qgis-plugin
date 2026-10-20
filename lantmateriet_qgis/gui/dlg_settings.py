@@ -28,6 +28,7 @@ from lantmateriet_qgis.__about__ import (
 )
 from lantmateriet_qgis.config import URLConfig
 from lantmateriet_qgis.core.settings import Settings
+from lantmateriet_qgis.core.util.connection_check import has_no_access
 from lantmateriet_qgis.core.util.oauth_config import (
     fetch_granted_scopes,
     get_scopes,
@@ -200,27 +201,37 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
             return
 
         missing = self._find_missing_subscriptions(s)
-        if missing:
-            QMessageBox.warning(
-                self,
-                self.tr("Saknad prenumeration"),
-                self.tr(
-                    "Konfigurationen är korrekt, men applikationen saknar "
-                    "prenumeration på följande API:er i Lantmäteriets API-manager:"
+        no_ngp_access = self._find_ngp_without_access(s.ngp_connections())
+        if missing or no_ngp_access:
+            text = self.tr("Konfigurationen har följande brister:") + "\n\n"
+            if missing:
+                text += (
+                    self.tr(
+                        "Applikationen saknar prenumeration på följande API:er i "
+                        "Lantmäteriets API-manager:"
+                    )
+                    + "\n• "
+                    + "\n• ".join(missing)
+                    + "\n\n"
                 )
-                + "\n\n• "
-                + "\n• ".join(missing)
-                + "\n\n"
-                + self.tr(
-                    "Tjänsterna ger felet Forbidden tills applikationen prenumererar på dem."
-                ),
-            )
-        else:
-            QMessageBox.information(
-                self,
-                self.tr("Konfigurationen är korrekt"),
-                self.tr("Konfigurationen är korrekt."),
-            )
+            if no_ngp_access:
+                text += (
+                    self.tr(
+                        "Autentiseringen för Nationella geodataplattformen saknar "
+                        "behörighet till följande tjänster:"
+                    )
+                    + "\n• "
+                    + "\n• ".join(no_ngp_access)
+                    + "\n\n"
+                )
+            text += self.tr("Tjänsterna ger felet Forbidden tills behörighet finns.")
+            QMessageBox.warning(self, self.tr("Konfigurationen är ofullständig"), text)
+            return
+        QMessageBox.information(
+            self,
+            self.tr("Konfigurationen är korrekt"),
+            self.tr("Konfigurationen är korrekt."),
+        )
 
     def _find_missing_subscriptions(self, s: Settings) -> list[str]:
         """Names of enabled Direkt services the application is not subscribed to.
@@ -239,6 +250,20 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
             QgsMessageLog.logMessage(f"Could not check API subscriptions: {e}")
             return []
         return find_missing_subscriptions(requested, granted)
+
+    def _find_ngp_without_access(
+        self, connections: dict[str, tuple[str, str]]
+    ) -> list[str]:
+        """Names of NGP services whose endpoint rejects the authentication.
+
+        Every service is tested separately, as different services may require
+        different system accounts.
+        """
+        no_access = []
+        for name, (url, authcfg) in connections.items():
+            if authcfg and has_no_access(url, authcfg):
+                no_access.append(name)
+        return no_access
 
     def get_existing_stac_connection_keys(self):
         # Get STAC connections node
@@ -330,23 +355,26 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
 
         stac_connections: dict[str, tuple[str, str]] = dict()
         oapif_connections: dict[str, tuple[str, str]] = dict()
-        if s.ngp_enabled:
-            stac_connections["NGP Detaljplan"] = (
-                s.ngp_url + URLConfig.NGP_STAC_DETALJPLAN,
-                s.ngp_authcfg,
+        ngp_connections = s.ngp_connections()
+        no_access = self._find_ngp_without_access(ngp_connections)
+        if no_access:
+            QMessageBox.information(
+                self,
+                self.tr("Lägg till tjänster"),
+                self.tr(
+                    "Följande tjänster läggs inte till eftersom autentiseringen "
+                    "saknar behörighet till dem:"
+                )
+                + "\n\n• "
+                + "\n• ".join(no_access)
+                + "\n\n"
+                + self.tr(
+                    "Det kan bero på att tjänsterna kräver ett annat systemkonto."
+                ),
             )
-            stac_connections["NGP Byggnad"] = (
-                s.ngp_url + URLConfig.NGP_STAC_BYGGNAD,
-                s.ngp_authcfg,
-            )
-            stac_connections["NGP Kulturhistorisk lämning"] = (
-                s.ngp_url + URLConfig.NGP_STAC_KULTURHISTORISK_LAMNING,
-                s.ngp_authcfg,
-            )
-            stac_connections["NGP Gräns för fjällnära skog"] = (
-                s.ngp_url + URLConfig.NGP_STAC_GRANS_FOR_FJALLNARA_SKOG,
-                s.ngp_authcfg,
-            )
+        for name, connection in ngp_connections.items():
+            if name not in no_access:
+                stac_connections[name] = connection
         if s.ovrig_enabled and s.ortofoto_nedladdning_enabled:
             stac_connections["Ortofoton Nedladdning"] = (
                 s.ovrig_url + URLConfig.LM_STAC_ORTO_NEDLADD,

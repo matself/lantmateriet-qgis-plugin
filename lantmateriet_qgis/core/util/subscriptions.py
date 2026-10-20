@@ -31,3 +31,12 @@ def find_missing_subscriptions(
     :param granted: Scopes found in the token response.
     """
     return [name for name, scope in requested.items() if scope not in granted]
+
+
+def status_means_no_access(status: int | None) -> bool:
+    """Whether an HTTP status shows that the credentials are not allowed to use a service.
+
+    Only 401 and 403 count. Anything else (no response, timeouts, 429, 5xx) says
+    nothing about access and must not make a service look unavailable.
+    """
+    return status in (401, 403)

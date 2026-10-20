@@ -5,6 +5,7 @@ import json
 from lantmateriet_qgis.core.util.subscriptions import (
     find_missing_subscriptions,
     parse_granted_scopes,
+    status_means_no_access,
 )
 
 
@@ -47,3 +48,21 @@ class TestFindMissingSubscriptions:
 
     def test_nothing_requested_returns_empty_list(self):
         assert find_missing_subscriptions({}, {"default"}) == []
+
+
+class TestStatusMeansNoAccess:
+    def test_unauthorized_and_forbidden_mean_no_access(self):
+        assert status_means_no_access(401)
+        assert status_means_no_access(403)
+
+    def test_success_does_not_mean_no_access(self):
+        assert not status_means_no_access(200)
+
+    def test_rate_limit_and_server_errors_say_nothing(self):
+        assert not status_means_no_access(429)
+        assert not status_means_no_access(500)
+        assert not status_means_no_access(503)
+
+    def test_missing_status_says_nothing(self):
+        """No response (network error, timeout) must not hide a service."""
+        assert not status_means_no_access(None)
