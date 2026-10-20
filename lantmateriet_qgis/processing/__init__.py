@@ -18,6 +18,8 @@ class LantmaterietProvider(QgsProcessingProvider):
     Processing provider class.
     """
 
+    PROVIDER_ID = "lantmateriet"
+
     def loadAlgorithms(self):
         """Loads all algorithms belonging to this provider."""
         self.addAlgorithm(DownloadAddressesBoundingAlgorithm())
@@ -33,7 +35,7 @@ class LantmaterietProvider(QgsProcessingProvider):
         :return: provider ID
         :rtype: str
         """
-        return "lantmateriet"
+        return self.PROVIDER_ID
 
     def name(self) -> str:
         """Returns the provider name, which is used to describe the provider

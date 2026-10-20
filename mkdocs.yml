@@ -71,6 +71,7 @@ nav:
       - Åtkomstnycklar: usage/installningar/atkomstnycklar.md
     - Funktioner:
       - usage/sokning.md
+      - usage/anslutningar.md
       - Algoritmer:
         - usage/algoritmer/index.md
         - Nedladdning:

@@ -55,6 +55,8 @@
 2. Klicka på knappen _Lägg till tjänster i Datakällor_
 3. I datakällor finns nu anslutningar under _STAC_ och _WFS / OGC API Features_ som kan användas som vanligt i QGIS
 
+[:octicons-arrow-right-24: Mer om pluginets anslutningar](anslutningar.md)
+
 [:octicons-arrow-right-24: Mer om datakällor i QGIS](https://docs.qgis.org/latest/en/docs/user_manual/introduction/browser.html)
 
 [:octicons-arrow-right-24: Mer om OGC API Features i QGIS](https://docs.qgis.org/latest/en/docs/user_manual/working_with_ogc/ogc_client_support.html#wfs-and-wfs-t-client)

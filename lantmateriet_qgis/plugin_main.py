@@ -78,5 +78,11 @@ class LantmaterietPlugin:
             del locator
         self.locators = []
 
-        QgsApplication.processingRegistry().removeProvider(self.provider)
+        # The registry owns the provider and may already have deleted it (for
+        # example after a failed or repeated reload), so look up the registered
+        # instance instead of calling into our possibly dead Python wrapper.
+        registry = QgsApplication.processingRegistry()
+        registered = registry.providerById(LantmaterietProvider.PROVIDER_ID)
+        if registered is not None:
+            registry.removeProvider(registered)
         self.provider = None
