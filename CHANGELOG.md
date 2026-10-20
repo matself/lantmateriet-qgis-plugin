@@ -14,6 +14,7 @@ Detta format är baserat på [Keep a Changelog](https://keepachangelog.com/sv/) 
 * Verifiera konfiguration kontrollerar även varje NGP-tjänst och varnar för tjänster som autentiseringen saknar behörighet till
 * Lägg till tjänster i Datakällor hoppar över NGP-tjänster som autentiseringen saknar behörighet till
 * Korrigera fel vid omladdning av pluginet (`unload`)
+* Korrigera krasch i QGIS 4 när åtkomstnycklar skapas (`Accepted` saknades på dialogklassen)
 
 ## 1.0.1 - 2025-09-26
 

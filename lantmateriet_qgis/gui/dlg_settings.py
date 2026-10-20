@@ -93,7 +93,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         dlg = CreateLMOAuthConfigurationDialog(
             url_base, "PROD" if self.button_ngp_prod.isChecked() else "VER", self
         )
-        if dlg.exec() == CreateLMOAuthConfigurationDialog.Accepted:
+        if dlg.exec() == QDialog.DialogCode.Accepted:
             self.auth_ngp.setConfigId("")
             self.auth_ngp.setConfigId(dlg.new_auth_cfg_id)
 
@@ -106,7 +106,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
         dlg = CreateLMOAuthConfigurationDialog(
             url_base, "VER" if self.button_ovrig_ver.isChecked() else "PROD", self
         )
-        if dlg.exec() == CreateLMOAuthConfigurationDialog.Accepted:
+        if dlg.exec() == QDialog.DialogCode.Accepted:
             self.auth_ovrig.setConfigId("")
             self.auth_ovrig.setConfigId(dlg.new_auth_cfg_id)
 
