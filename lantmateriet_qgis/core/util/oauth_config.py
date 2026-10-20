@@ -1,7 +1,17 @@
+import base64
 import json
 from typing import Any, TypedDict
 
-from qgis.core import QgsApplication, QgsAuthManager, QgsAuthMethodConfig
+from qgis.core import (
+    QgsApplication,
+    QgsAuthManager,
+    QgsAuthMethodConfig,
+    QgsBlockingNetworkRequest,
+)
+from qgis.PyQt.QtCore import QByteArray, QUrl, QUrlQuery
+from qgis.PyQt.QtNetwork import QNetworkRequest
+
+from lantmateriet_qgis.core.util.subscriptions import parse_granted_scopes
 
 
 class GrantFlow:
@@ -83,3 +93,39 @@ def store_oauth_config(authcfg: str, data: OAuth2ConfigData):
     )
     auth_manager.storeAuthenticationConfig(config, overwrite=True)
     auth_manager.updateConfigAuthMethods()
+
+
+def fetch_granted_scopes(authcfg: str, scopes: list[str]) -> set[str]:
+    """Request a token for the given scopes and return the scopes actually granted.
+
+    Only client credentials configurations are supported. Raises RuntimeError if
+    the token endpoint cannot be reached or rejects the credentials.
+    """
+    config = load_oauth_config(authcfg)
+    token_url = config.get("tokenUrl")
+    client_id = config.get("clientId")
+    client_secret = config.get("clientSecret")
+    if not (token_url and client_id and client_secret):
+        raise RuntimeError("The authentication has no token URL or credentials")
+
+    request = QNetworkRequest(QUrl(token_url))
+    request.setHeader(
+        QNetworkRequest.KnownHeaders.ContentTypeHeader,
+        "application/x-www-form-urlencoded",
+    )
+    credentials = base64.b64encode(f"{client_id}:{client_secret}".encode()).decode()
+    request.setRawHeader(b"Authorization", f"Basic {credentials}".encode())
+
+    form = QUrlQuery()
+    form.addQueryItem("grant_type", "client_credentials")
+    if scopes:
+        form.addQueryItem("scope", " ".join(scopes))
+    body = QByteArray(
+        form.toString(QUrl.ComponentFormattingOption.FullyEncoded).encode()
+    )
+
+    blocking = QgsBlockingNetworkRequest()
+    error = blocking.post(request, body)
+    if error != QgsBlockingNetworkRequest.ErrorCode.NoError:
+        raise RuntimeError(blocking.errorMessage())
+    return parse_granted_scopes(bytes(blocking.reply().content()))

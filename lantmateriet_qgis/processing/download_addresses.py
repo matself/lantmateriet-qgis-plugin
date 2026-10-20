@@ -87,7 +87,8 @@ class AbstractDownloadPropertiesAlgorithm(QgsProcessingAlgorithm):
         return "downloading"
 
     def helpUrl(self) -> str:
-        return f"https://qgissverige.github.io/lantmateriet-qgis-plugin/usage/algoritmer/{self.name().replace('_', '-')}/"
+        slug = self.name().replace("_", "-")
+        return f"https://qgissverige.github.io/lantmateriet-qgis-plugin/usage/algoritmer/{slug}/"
 
     def initAlgorithm(self, config: Optional[dict[str, Any]] = None):
         self.addParameter(

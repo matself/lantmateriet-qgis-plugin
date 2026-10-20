@@ -29,10 +29,12 @@ from lantmateriet_qgis.__about__ import (
 from lantmateriet_qgis.config import URLConfig
 from lantmateriet_qgis.core.settings import Settings
 from lantmateriet_qgis.core.util.oauth_config import (
+    fetch_granted_scopes,
     get_scopes,
     load_oauth_config,
     store_oauth_config,
 )
+from lantmateriet_qgis.core.util.subscriptions import find_missing_subscriptions
 from lantmateriet_qgis.gui.dlg_access import CreateLMOAuthConfigurationDialog
 
 FORM_CLASS, _ = uic.loadUiType(
@@ -169,17 +171,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
                 return
 
             config = load_oauth_config(s.ovrig_authcfg)
-            required_scopes = []
-            if s.fastighetsindelning_direkt_enabled:
-                required_scopes.append("ogc-features:fastighetsindelning.read")
-            if s.fastighet_direkt_enabled:
-                required_scopes.append("fastighetochsamfallighet_direkt_v31_read")
-            if s.registerbeteckning_direkt_enabled:
-                required_scopes.append("registerbeteckning_direkt_v5_read")
-            if s.gemensamhetsanlaggning_direkt_enabled:
-                required_scopes.append("gemensamhetsanlaggning_direkt_v21_read")
-            if s.belagenhetsadress_direkt_enabled:
-                required_scopes.append("belagenhetsadress_direkt_v42_read")
+            required_scopes = list(s.required_scopes().values())
             existing_scopes = get_scopes(config)
             missing_scopes = set(required_scopes) - set(existing_scopes)
             if missing_scopes:
@@ -205,12 +197,48 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
             for error in errors:
                 msg += "\n• " + error
             QMessageBox.warning(self, self.tr("Fel i konfigurationen"), msg)
+            return
+
+        missing = self._find_missing_subscriptions(s)
+        if missing:
+            QMessageBox.warning(
+                self,
+                self.tr("Saknad prenumeration"),
+                self.tr(
+                    "Konfigurationen är korrekt, men applikationen saknar "
+                    "prenumeration på följande API:er i Lantmäteriets API-manager:"
+                )
+                + "\n\n• "
+                + "\n• ".join(missing)
+                + "\n\n"
+                + self.tr(
+                    "Tjänsterna ger felet Forbidden tills applikationen prenumererar på dem."
+                ),
+            )
         else:
             QMessageBox.information(
                 self,
                 self.tr("Konfigurationen är korrekt"),
                 self.tr("Konfigurationen är korrekt."),
             )
+
+    def _find_missing_subscriptions(self, s: Settings) -> list[str]:
+        """Names of enabled Direkt services the application is not subscribed to.
+
+        Returns an empty list if nothing can be checked (no OAuth2 configuration,
+        or the token endpoint is unreachable), so verification never fails here.
+        """
+        if not (s.ovrig_enabled and s.ovrig_authcfg):
+            return []
+        requested = s.required_scopes()
+        if not requested:
+            return []
+        try:
+            granted = fetch_granted_scopes(s.ovrig_authcfg, list(requested.values()))
+        except RuntimeError as e:
+            QgsMessageLog.logMessage(f"Could not check API subscriptions: {e}")
+            return []
+        return find_missing_subscriptions(requested, granted)
 
     def get_existing_stac_connection_keys(self):
         # Get STAC connections node
@@ -368,7 +396,8 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
             .childNode("connections")
         )
 
-        # Check if a connection already exists with the same name and if it differs in authcfg or url. If so, let user decide what to do.
+        # Check if a connection already exists with the same name and if it differs in
+        # authcfg or url. If so, let user decide what to do.
         keys = self.get_existing_stac_connection_keys()
         for key in keys:
             item = stac_connections.get(key, None)
@@ -435,7 +464,7 @@ class ConfigOptionsPage(FORM_CLASS, QgsOptionsPageWidget):
             oapif_settings_node.childSetting("authcfg").setValue(
                 authcfg, ["wfs", connection_name]
             )
-            # TODO: behöver andra inställningar skapas enligt default?
+            # TODO: do other settings need to be created with defaults?
 
         # Refresh connections
         iface.mainWindow().findChildren(QWidget, "Browser")[0].refresh()

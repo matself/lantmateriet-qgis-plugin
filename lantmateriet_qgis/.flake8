@@ -1,0 +1,7 @@
+[flake8]
+max-line-length = 120
+# E203 and E301 conflict with the ruff formatter (slice spacing, overloads)
+extend-ignore = E203, E301
+# Expression function help texts are long HTML strings
+per-file-ignores =
+    core/functions/*.py:E501

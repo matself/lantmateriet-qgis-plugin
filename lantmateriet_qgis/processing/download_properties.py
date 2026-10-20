@@ -85,7 +85,8 @@ class AbstractDownloadPropertiesAlgorithm(QgsProcessingAlgorithm):
         return "downloading"
 
     def helpUrl(self) -> str:
-        return f"https://qgissverige.github.io/lantmateriet-qgis-plugin/usage/algoritmer/{self.name().replace('_', '-')}/"
+        slug = self.name().replace("_", "-")
+        return f"https://qgissverige.github.io/lantmateriet-qgis-plugin/usage/algoritmer/{slug}/"
 
     def initAlgorithm(self, config: Optional[dict[str, Any]] = None):
         self.addParameter(
@@ -219,7 +220,9 @@ class AbstractDownloadPropertiesAlgorithm(QgsProcessingAlgorithm):
         for omrade in omraden:
             if "outrettomradesinformation" in omrade:
                 feedback.pushWarning(
-                    f"Hittade ett outrett område i svaret från Lantmäteriet. Detta kommer inte inkluderas i nedladdningen. Objektidentitet: {omrade['objektidentitet']}"
+                    f"Hittade ett outrett område i svaret från Lantmäteriet. "
+                    f"Detta kommer inte inkluderas i nedladdningen. "
+                    f"Objektidentitet: {omrade['objektidentitet']}"
                 )
         return set(
             omr["registerenhetsreferens"]
@@ -280,7 +283,8 @@ class AbstractDownloadPropertiesAlgorithm(QgsProcessingAlgorithm):
                 sink_points.addFeature(feature, QgsFeatureSink.Flag.FastInsert)
         else:
             feedback.pushWarning(
-                f"Unknown geometry type {feature.geometry().wkbType()} for feature {object['objektidentitet']}. Skipping."
+                f"Unknown geometry type {feature.geometry().wkbType()} "
+                f"for feature {object['objektidentitet']}. Skipping."
             )
 
 
@@ -352,7 +356,10 @@ class DownloadPropertiesPolygonAlgorithm(AbstractDownloadPropertiesAlgorithm):
 
             # = client.get_references_from_geometry(extent_geom)
             # TODO: we get error messages when attempting to load more than one item
-            # references_chunks = [references[i:i + FastighetOchSamfallighetDirektClient.MAX_GET_MANY] for i in range(0, len(references), FastighetOchSamfallighetDirektClient.MAX_GET_MANY)]
+            # references_chunks = [
+            #     references[i : i + MAX_GET_MANY]
+            #     for i in range(0, len(references), MAX_GET_MANY)
+            # ]
             # for chunk in references_chunks:
             #    objects = client.get_many([ref["objektidentitet"] for ref in chunk], "total")
             #    for object in objects:
@@ -466,7 +473,10 @@ class DownloadPropertiesBoundingAlgorithm(AbstractDownloadPropertiesAlgorithm):
             )
             references = client.get_references_from_geometry(extent_geom)
             # TODO: we get error messages when attempting to load more than one item
-            # references_chunks = [references[i:i + FastighetOchSamfallighetDirektClient.MAX_GET_MANY] for i in range(0, len(references), FastighetOchSamfallighetDirektClient.MAX_GET_MANY)]
+            # references_chunks = [
+            #     references[i : i + MAX_GET_MANY]
+            #     for i in range(0, len(references), MAX_GET_MANY)
+            # ]
             # for chunk in references_chunks:
             #    objects = client.get_many([ref["objektidentitet"] for ref in chunk], "total")
             #    for object in objects:

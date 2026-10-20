@@ -22,7 +22,8 @@ Collection = Literal[
 
 
 def format_beteckning(properties: dict) -> str:
-    return f"{properties['kommunnamn']} {properties['trakt']} {properties['etikett'].split('>')[0].replace('(', '').replace(')', '')}"
+    label = properties["etikett"].split(">")[0].replace("(", "").replace(")", "")
+    return f"{properties['kommunnamn']} {properties['trakt']} {label}"
 
 
 class RegisterenhetsOmrade(TypedDict):
@@ -128,9 +129,10 @@ class FastighetsindelningDirektClient(BaseClient):
             )
             point.transform(transformer)
             crs = QgsCoordinateReferenceSystem.fromEpsgId(3006)
+        centroid = point.centroid().asPoint()
         query.addQueryItem(
             "bbox",
-            f"{point.centroid().asPoint().y()},{point.centroid().asPoint().x()},{point.centroid().asPoint().y()},{point.centroid().asPoint().x()}",
+            f"{centroid.y()},{centroid.x()},{centroid.y()},{centroid.x()}",
         )
         query.addQueryItem("bbox-crs", crs.toOgcUri())
         query.addQueryItem("limit", "1")
@@ -173,9 +175,10 @@ class FastighetsindelningDirektClient(BaseClient):
             )
             rect.transform(transformer)
             crs = QgsCoordinateReferenceSystem.fromEpsgId(3006)
+        box = rect.boundingBox()
         query.addQueryItem(
             "bbox",
-            f"{rect.boundingBox().yMinimum()},{rect.boundingBox().xMinimum()},{rect.boundingBox().yMaximum()},{rect.boundingBox().xMaximum()}",
+            f"{box.yMinimum()},{box.xMinimum()},{box.yMaximum()},{box.xMaximum()}",
         )
         query.addQueryItem("bbox-crs", crs.toOgcUri())
         query.addQueryItem("limit", "10000")
@@ -238,7 +241,10 @@ class FastighetsindelningDirektClient(BaseClient):
                         ),
                         crs,
                     ),
-                    beteckning=f"{feature['properties']['kommunnamn']} {feature['properties']['trakt']} {feature['properties']['etikett']}",
+                    beteckning=" ".join(
+                        feature["properties"][key]
+                        for key in ("kommunnamn", "trakt", "etikett")
+                    ),
                 )
                 for feature in response["features"]
             ]
@@ -249,7 +255,10 @@ class FastighetsindelningDirektClient(BaseClient):
                     senastandrad=QDateTime.fromString(
                         feature["properties"]["senastandrad"], Qt.DateFormat.ISODate
                     ),
-                    beteckning=f"{feature['properties']['kommunnamn']} {feature['properties']['trakt']} {feature['properties']['etikett']}",
+                    beteckning=" ".join(
+                        feature["properties"][key]
+                        for key in ("kommunnamn", "trakt", "etikett")
+                    ),
                 )
                 for feature in response["features"]
             ]

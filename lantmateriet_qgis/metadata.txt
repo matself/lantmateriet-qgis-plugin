@@ -1,11 +1,11 @@
 [general]
-name=Lantmäteriets tjänster
-about=Convenient connection to several of Lantmäteriet's services
+name=Lantmäteriet Services
+about=Connects QGIS to Lantmäteriet's (the Swedish land survey) APIs: search addresses, properties, joint facilities and common property units from the locator bar; download addresses, properties and common properties with Processing algorithms; add STAC and OGC service connections to the Browser; use property and address data in expressions. Requires a free account and an application in Lantmäteriet's API Manager (Consumer Key and Consumer Secret, configured in the plugin settings as an OAuth2 authentication). Covers Sweden only. The user interface is in Swedish; an English guide to all dialogs and algorithms is in the README.
 category=Web
 hasProcessingProvider=True
 description=Convenient connection to several of Lantmäteriet's (the national land survey of Sweden) services, such as downloading data, connecting to STAC endpoints, and searching using the locator
 icon=resources/images/logo.svg
-tags=locator,stac
+tags=locator,stac,sweden,lantmateriet,cadastre,address
 
 author=QGIS Sverige, Sweco
 email=info@qgis.se
@@ -15,8 +15,11 @@ tracker=https://github.com/qgissverige/lantmateriet-qgis-plugin/issues/
 
 deprecated=False
 experimental=False
+license=GPL-2.0-or-later
 qgisMinimumVersion=3.34
 qgisMaximumVersion=4.99
 
-version=1.0.1
-changelog=
+version=1.0.2
+changelog=1.0.2: Fix crash when saving settings and the selected authentication has no scopes. Fix crash when the selected authentication was removed or is not OAuth2. Use Consumer Key/Secret wording. Fix URL for the NGP cultural heritage service.
+    1.0.1: Fix logging of network errors in the locator. Logging when loading and storing settings. Better handling of custom URLs.
+    1.0.0: First public version.

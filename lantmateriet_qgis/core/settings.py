@@ -108,6 +108,27 @@ class Settings:
             "hojdgrid_nedladdning_enabled", self.hojdgrid_nedladdning_enabled
         )
 
+    def required_scopes(self) -> dict[str, str]:
+        """Scopes needed by the enabled Direkt services, keyed by service name."""
+        scopes = {}
+        if self.fastighetsindelning_direkt_enabled:
+            scopes["Fastighetsindelning Direkt"] = (
+                "ogc-features:fastighetsindelning.read"
+            )
+        if self.fastighet_direkt_enabled:
+            scopes["Fastighet och Samfällighet Direkt"] = (
+                "fastighetochsamfallighet_direkt_v31_read"
+            )
+        if self.registerbeteckning_direkt_enabled:
+            scopes["Registerbeteckning Direkt"] = "registerbeteckning_direkt_v5_read"
+        if self.gemensamhetsanlaggning_direkt_enabled:
+            scopes["Gemensamhetsanläggning Direkt"] = (
+                "gemensamhetsanlaggning_direkt_v21_read"
+            )
+        if self.belagenhetsadress_direkt_enabled:
+            scopes["Belägenhetsadress Direkt"] = "belagenhetsadress_direkt_v42_read"
+        return scopes
+
     def validate(self) -> list[str]:
         errors = []
 

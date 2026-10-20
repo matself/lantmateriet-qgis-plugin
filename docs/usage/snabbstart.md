@@ -2,7 +2,7 @@
 
 ## 1. Installera pluginet
 
-1. Öppna pluginhanteraren i QGIS och sök efter "Lantmäteriets tjänster". Installera pluginet.
+1. Öppna pluginhanteraren i QGIS och sök efter "Lantmäteriet Services". Installera pluginet.
 
 [:octicons-arrow-right-24: Mer om installation](installation.md)
 
